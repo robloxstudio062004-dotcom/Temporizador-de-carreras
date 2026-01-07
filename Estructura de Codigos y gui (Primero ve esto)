@@ -17,3 +17,6 @@ StarterGui
      ├─ TimerText (TextLabel) escribiras "Tiempo : 0 s"
          └─ UICorner
          └─ LocalScript (Local script)
+
+
+POR ULTIMO NO OLVIDAR ENTRAR  : ARCHIVO < CONFIGURACION DEL JUEGO < SEGURIDAD < ACTIVAR EL ACCESO DE STUDIO API
