@@ -1,0 +1,31 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local timerEvent = ReplicatedStorage:WaitForChild("TimerEvent")
+
+local textLabel = script.Parent
+textLabel.Visible = false -- 🔹 Invisible al inicio
+
+local running = false
+local startTime = 0
+
+-- Bucle para actualizar el texto en tiempo real
+game:GetService("RunService").RenderStepped:Connect(function()
+	if running then
+		local currentTime = tick() - startTime
+		textLabel.Text = string.format("Tiempo: %.2f s", currentTime)
+	end
+end)
+
+timerEvent.OnClientEvent:Connect(function(action, time)
+	if action == "start" then
+		textLabel.Visible = true
+		startTime = tick()
+		running = true
+		textLabel.Text = "Tiempo: 0.00 s"
+
+	elseif action == "stop" then
+		running = false
+		textLabel.Text = string.format("Tiempo final: %.2f s", time)
+		task.wait(3) -- 🔹 Muestra el tiempo final por 3 segundos
+		textLabel.Visible = false
+	end
+end)
