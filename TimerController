@@ -1,0 +1,100 @@
+-- ServerScriptService < TimerController(script)
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DataStoreService = game:GetService("DataStoreService")
+local bestTimeStore = DataStoreService:GetDataStore("BestTimeStore")
+
+local timerEvent = ReplicatedStorage:FindFirstChild("TimerEvent")
+if not timerEvent then
+	timerEvent = Instance.new("RemoteEvent")
+	timerEvent.Name = "TimerEvent"
+	timerEvent.Parent = ReplicatedStorage
+end
+
+local startPart = workspace:WaitForChild("Part1")
+local endPart = workspace:WaitForChild("Part7")
+local middleParts = {"Part2", "Part3", "Part4", "Part5", "Part6"}
+local playersProgress = {}
+local timers = {}
+local bestTimes = {}
+
+local function getPlayerFromHit(hit)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if player then return player end
+
+	local model = hit:FindFirstAncestorOfClass("Model")
+	if model then
+		for _, seat in ipairs(model:GetDescendants()) do
+			if seat:IsA("VehicleSeat") or seat:IsA("Seat") then
+				if seat.Occupant then
+					local char = seat.Occupant.Parent
+					local playerFromSeat = game.Players:GetPlayerFromCharacter(char)
+					if playerFromSeat then
+						return playerFromSeat
+					end
+				end
+			end
+		end
+	end
+	return nil
+end
+
+game.Players.PlayerAdded:Connect(function(player)
+	local success, data = pcall(function()
+		return bestTimeStore:GetAsync(player.UserId)
+	end)
+	if success and data then
+		bestTimes[player] = data
+	else
+		bestTimes[player] = math.huge
+	end
+end)
+
+game.Players.PlayerRemoving:Connect(function(player)
+	if bestTimes[player] and bestTimes[player] ~= math.huge then
+		pcall(function()
+			bestTimeStore:SetAsync(player.UserId, bestTimes[player])
+		end)
+	end
+end)
+
+startPart.Touched:Connect(function(hit)
+	local player = getPlayerFromHit(hit)
+	if player and not timers[player] then
+		timers[player] = tick()
+		playersProgress[player] = {1}
+		timerEvent:FireClient(player, "start")
+	end
+end)
+
+for i, partName in ipairs(middleParts) do
+	local part = workspace:WaitForChild(partName)
+	part.Touched:Connect(function(hit)
+		local player = getPlayerFromHit(hit)
+		if player and timers[player] then
+			local progress = playersProgress[player]
+			if not table.find(progress, i + 1) then
+				table.insert(progress, i + 1)
+			end
+		end
+	end)
+end
+
+endPart.Touched:Connect(function(hit)
+	local player = getPlayerFromHit(hit)
+	if player and timers[player] then
+		local progress = playersProgress[player]
+		if #progress == 6 then
+			local totalTime = tick() - timers[player]
+			timerEvent:FireClient(player, "stop", totalTime)
+			if totalTime < bestTimes[player] then
+				bestTimes[player] = totalTime
+				pcall(function()
+					bestTimeStore:SetAsync(player.UserId, totalTime)
+				end)
+			end
+			timers[player] = nil
+			playersProgress[player] = nil
+		end
+	end
+end)
