@@ -1,0 +1,14 @@
+local player = game.Players.LocalPlayer
+local timerLabel = script.Parent:WaitForChild("TimerText")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local timerEvent = replicatedStorage:WaitForChild("TimerEvent")
+
+timerEvent.OnClientEvent:Connect(function(action, value)
+	if action == "start" then
+		timerLabel.Text = "Tiempo: 0.00 s"
+	elseif action == "update" then
+		timerLabel.Text = string.format("Tiempo: %.2f s", value)
+	elseif action == "stop" then
+		timerLabel.Text = string.format("Final: %.2f s", value)
+	end
+end)
