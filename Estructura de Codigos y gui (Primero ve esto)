@@ -1,1 +1,19 @@
+WORKSPACE
+└─ Part1
+└─ Part2
+└─ Part3
+└─ Part4
+└─ Part5
+└─ Part6
+└─ Part7
 
+ServerScriptService
+ └─ TimerController (Script)
+
+
+StarterGui
+ └─ TimerGui (ScreenGui)
+     ├─ RelojVisual (Local script)
+     ├─ TimerText (TextLabel) escribiras "Tiempo : 0 s"
+         └─ UICorner
+         └─ LocalScript (Local script)
